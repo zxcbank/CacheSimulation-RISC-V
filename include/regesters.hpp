@@ -15,7 +15,6 @@ enum Regesters {
     t2,
     s0,
     s1,
-    fp,
     a0,
     a1,
     a2,

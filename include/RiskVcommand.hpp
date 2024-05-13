@@ -26,20 +26,23 @@ class AssmblerInstruction {
         static bool isLabel(const std::string& line, std::map<std::string, int>& labels, int i);
         bool isRamUsing();
        
-    std::string getCommand() {
+    [[nodiscard]] std::string getCommand() const {
         return command;
     }
-    std::string getOp1() {
+    [[nodiscard]] std::string getOp1() const {
         return op1;
     }
-    std::string getOp2() {
+    [[nodiscard]] std::string getOp2() const {
         return op2;
     }
-    std::string getOp3() {
+    [[nodiscard]] std::string getOp3() const {
         return op3;
     }
     [[nodiscard]] bool isMarked() const {
         return isMark;
+    }
+    [[nodiscard]] std::string getLabel() const {
+        return label;
     }
 };
 

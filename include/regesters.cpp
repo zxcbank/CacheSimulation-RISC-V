@@ -15,8 +15,8 @@ int getRegNum(const std::string& reg) {
     if (reg == "t1") return t1;
     if (reg == "t2") return t2;
     if (reg == "s0") return s0;
+    if (reg == "fp") return s0; // важный момент
     if (reg == "s1") return s1;
-    if (reg == "fp") return fp;
     if (reg == "a0") return a0;
     if (reg == "a1") return a1;
     if (reg == "a2") return a2;

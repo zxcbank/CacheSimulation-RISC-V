@@ -20,8 +20,9 @@ AssmblerInstruction::AssmblerInstruction(const std::string& line, std::map<std::
         while (line[i] == ' ') i++;
         int j = i;
         while (line[j] != ':' && j < line.size()) j++;
-        labels[line.substr(i, j - i)] = pc;
+        labels[line.substr(i, j - i)] = pc - 1;
         isMark = true;
+        label = line.substr(i, j - i);
         return;
     }
     int i = 0;
@@ -77,6 +78,7 @@ void AssmblerInstruction::invoke(int& pc, std::map<std::string, int>& labels, RA
 }
 
 bool AssmblerInstruction::isRamUsing() {
+    
     if (std::ranges::find(ramCommands.begin(), ramCommands.end(), command) != ramCommands.end()) {
         return true;
     }

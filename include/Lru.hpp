@@ -11,18 +11,19 @@
 
 class CacheLine {
     private:
-        uint64_t tag;
+        int tag;
         int time;
-        uint64_t data;
+        int data;
+        
     public:
-        explicit CacheLine(uint64_t tag, uint64_t data, int time_) : tag(tag), data(data), time(time_) {}
-        CacheLine() : tag(0), data(0), time(0) {}
+        explicit CacheLine(int tag, int data, int time_) : tag(tag), data(data), time(time_) {}
+        CacheLine() : tag(-1), data(0), time(0) {}
         ~CacheLine() = default;
         
-        [[nodiscard]] uint64_t getTag() const {
+        [[nodiscard]] int getTag() const {
             return tag;
         }
-        [[nodiscard]] uint64_t getData() const {
+        [[nodiscard]] int getData() const {
             return data;
         }
         [[nodiscard]] int getTime() const {
@@ -32,11 +33,11 @@ class CacheLine {
             this->time = time_;
         }
         
-         void setData(uint64_t data_) {
+         void setData(int data_) {
             this->data = data_;
         }
         
-         void setTag(uint64_t tag_) {
+         void setTag(int tag_) {
             this->tag = tag_;
         }
 };

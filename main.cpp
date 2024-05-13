@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     
     parseobject.parse(argc, argv);
     
-    Processor cpu("Intel i5", parseobject.GetReplacement());
+    Processor cpu("Intel i5", parseobject.GetReplacement(), parseobject.GetBin());
     
     cpu.execute(parseobject.GetAsmFname());
     cpu.getStats();

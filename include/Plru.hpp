@@ -27,7 +27,7 @@ class bitCacheLine {
         [[nodiscard]] bool getAct() const {
             return active;
         }
-        void setTime(bool act_) {
+        void setAct(bool act_) {
             this->active = act_;
         }
         
@@ -56,7 +56,7 @@ class cashset {
             for (int i = 0; i < CACHE_WAY; i++) {
                 cache[i].setTag(0);
                 cache[i].setData(0);
-                cache[i].setTime(false);
+                cache[i].setAct(false);
             }
         }
 };

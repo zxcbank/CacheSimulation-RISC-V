@@ -14,18 +14,26 @@ int sext(int val, int size) {
 }
 
 void addi (std::vector<int>& reg, int r1, int r2, int imm) {
+    if (r1 == 0)
+        return;
     reg[r1] = reg[r2] + sext(imm, 12);
 }
 
 void add (std::vector<int>& reg, int r1, int r2, int r3) {
+    if (r1 == 0)
+        return;
     reg[r1] = reg[r2] + reg[r3];
 }
 
 void srli (std::vector<int>& reg, int r1, int r2, int imm) {
+    if (r1 == 0)
+        return;
     reg[r1] = reg[r2] >> imm;
 }
 
 void lui(std::vector<int>& reg, int r1, int imm) {
+    if (r1 == 0)
+        return;
     reg[r1] = sext(imm << 12, 20); // мб не 12 на самом деле потом проверю
 }
 
@@ -39,7 +47,8 @@ void sw (std::vector<int>& reg, int r1, int offset, int r2, RAM& memory) {
 }
 
 void lw (std::vector<int>& reg, int r1, int offset, int r2, RAM& memory) {
-    
+    if (r1 == 0)
+        return;
     reg[r1] = memory[reg[r2] + sext(offset, 12)]; // здесь тоже
 }
 
