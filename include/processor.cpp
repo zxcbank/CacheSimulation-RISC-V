@@ -5,7 +5,7 @@
 #include "processor.hpp"
 //#define ITER_DEBUG
 //#define BIN_DEBUG
-#define STAT_DEBUG
+//#define STAT_DEBUG
 
 #define mask32 0xffffffff
 #define mask2byte_1 0xff000000
@@ -62,9 +62,14 @@ void Processor::execute(const std::string& filename) {
                 lru_cache.checkLRU(index, tag, global_time_utc0);
                 plru_cache.checkPLRU(index, tag, global_time_utc0);
             }
+            try {
+                ins.invoke(pc, labels, memory, registers, instructions);
+                pc++;
+            } catch(...) {
+                std::cout << "Error in line: " << pc << std::endl;
+                exit(1);
+            }
             
-            ins.invoke(pc, labels, memory, registers, instructions); //TODO:: blt рушит всю прогу я не виноват
-            pc++;
         }
         
         asm_file.close();
@@ -110,13 +115,8 @@ bool InsUsingLabels(const AssmblerInstruction& ins, std::map<std::string, int>& 
 }
 
 void order(int res, std::ostream& out) {
-//    out.write(reinterpret_cast<char*>(&res), 4);
     int t_res = (res & mask2byte_4) | (res & mask2byte_3) | (res & mask2byte_2) | (res & mask2byte_1);
     out.write(reinterpret_cast<char*>(&t_res), 4);
-//    out << std::hex << std::setw(2) << std::setfill('0') << (res & mask2byte_4) << " ";
-//    out << std::hex << std::setw(2) << std::setfill('0') << ((res & mask2byte_3) >> 8) << " ";
-//    out << std::hex << std::setw(2) << std::setfill('0') << ((res & mask2byte_2) >> 16) << " ";
-//    out << std::hex << std::setw(2) << std::setfill('0') << ((res & mask2byte_1) >> 24) <<"\n";
 }
 
 void Processor::writeBinForm(int pc, const AssmblerInstruction& ins, std::vector<AssmblerInstruction>& instructions, std::ofstream& bin_file_) {
@@ -209,6 +209,16 @@ void Processor::writeBinForm(int pc, const AssmblerInstruction& ins, std::vector
     } else if (ins.getCommand() == "sw") {
         type = 0b11;
         opcode = 0b01000;
+        int c14_12 = 0b010;
+        int c19_15 = getRegNum(ins.getOp3());
+        int c31_25 = convert(ins.getOp2());
+        int c11_7 =  getRegNum(ins.getOp2()) & 0xF;
+        res = (opcode << 2) | (type) | (c14_12 << 12) | (c19_15 << 15) | ((c31_25 >> 6) << 25);
+        
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
     } else if (ins.getCommand() == "blt") {
         type = 0b11;
         opcode = 0b11000;
@@ -227,6 +237,406 @@ void Processor::writeBinForm(int pc, const AssmblerInstruction& ins, std::vector
         #ifdef BIN_DEBUG
                 bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
         #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "auipc") {
+        res = (0b11) | (0b00101) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 12);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "slti") {
+        res = (0b11) | (0b00100 << 2)| (0b010 << 12)| (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+                order(res, bin_file_);
+    } else if (ins.getCommand() == "sltiu") {
+        res = (0b11) | (0b00100 << 2)| (0b011 << 12)| (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+                order(res, bin_file_);
+    } else if (ins.getCommand() == "sltiu") {
+        res = (0b11) | (0b00100 << 2)| (0b100 << 12)| (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "xori") {
+        res = (0b11) | (0b00100 << 2) | (0b100 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "ori") {
+        res = (0b11) | (0b00100 << 2) | (0b110 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "andi") {
+        res = (0b11) | (0b00100 << 2) | (0b111 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "slli") {
+        res = (0b11) | (0b00100 << 2) | (0b001 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "srli") {
+        res = (0b11) | (0b00100 << 2) | (0b101 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "srai") {
+        res = (0b11) | (0b00100 << 2) | (0b101 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (convert(ins.getOp3()) << 20)
+            | (0b01000 << 27);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "sub") {
+        res = (0b11) | (0b01100 << 2) | (0b000 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20)
+            | (0b01000 << 27);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "sll") {
+        res = (0b11) | (0b01100 << 2) | (0b001 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "slt") {
+        res = (0b11) | (0b01100 << 2) | (0b010 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "sltu") {
+        res = (0b11) | (0b01100 << 2) | (0b011 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "xor") {
+        res = (0b11) | (0b01100 << 2) | (0b100 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "srl") {
+        res = (0b11) | (0b01100 << 2) | (0b101 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "sra") {
+        res = (0b11) | (0b01100 << 2) | (0b101 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20) |
+            (0b01000 << 27);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "or") {
+        res = (0b11) | (0b01100 << 2) | (0b110 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "and") {
+        res = (0b11) | (0b01100 << 2) | (0b111 << 12) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "ecall") {
+        res = (0b11) | (0b11100 << 2);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "ebreak") {
+        res = (0b11) | (0b11100 << 2) | (1 << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "uret") {
+        res = (0b11) | (0b11100 << 2) | (2 << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "sret") {
+        res = (0b11) | (0b11100 << 2) | (2 << 20) | (0b000100 << 27);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "mret") {
+        res = (0b11) | (0b11100 << 2) | (2 << 20) | (0b00110 << 27);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "lb") {
+        res = (0b11) | (0b00000 << 2) | (0b000 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "lh") {
+        
+        res = (0b11) | (0b00000 << 2) | (0b001 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "lbu") {
+        res = (0b11) | (0b00000 << 2) | (0b100 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "lhu") {
+        res = (0b11) | (0b00000 << 2) | (0b101 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "sb") {
+        res = (0b11) | (0b01000 << 2) | (0b000 << 12) | ((convert(ins.getOp2()) & 0xF) << 7) | (getRegNum(ins.getOp3()) << 15) | (getRegNum(ins.getOp1()) << 20)
+            | ((convert(ins.getOp2()) & 0x7F0) << 25);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "sh") {
+        
+        res = (0b11) | (0b01000 << 2) | (0b001 << 12) | ((convert(ins.getOp2()) & 0xF) << 7) | (getRegNum(ins.getOp3()) << 15) | (getRegNum(ins.getOp1()) << 20)
+            | ((convert(ins.getOp2()) & 0x7F0) << 25);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "jal") {
+        res = (0b11) | (0b11011 << 2) | (getRegNum(ins.getOp1()) << 7);
+        res |= (((convert(ins.getOp2()) >> 12) & 0xFF) << 12);
+        res |= (((convert(ins.getOp2()) >> 11) & 1) << 20);
+        res |= ((convert(ins.getOp2()) & 0x3FF) << 21);
+        res |= ((convert(ins.getOp2()) >> 20) << 31);
+        #ifdef BIN_DEBUG
+                bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+        #endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "jalr") {
+        res = (0b11) | (0b11001 << 2) | (getRegNum(ins.getOp1()) << 7) | (getRegNum(ins.getOp2()) << 20) |
+            (convert(ins.getOp3()) << 20);
+    } else if (ins.getCommand() == "beq") {
+        type = 0b11;
+        opcode = 0b11000;
+        int c24_20 = getRegNum(ins.getOp2());
+        int c19_15 = getRegNum(ins.getOp1());
+        int c14_12 = 0b000;
+        int offset;
+        if (!labels[ins.getOp3()]) {
+            offset = convert(ins.getOp3()); //offset
+        } else {
+            offset =   4 * (labels[ins.getOp3()] - pc + 1);
+        }
+        
+        res = (opcode << 2) | (type) | (c24_20 << 20) | (c19_15 << 15) | (((offset >> 1) & 0xf) << 8) | (c14_12 << 12) |
+            (((offset >> 11) & 1) << 7) | (((offset >> 5) & 0x3f) << 25) | (((offset >> 12) & 1) << 31);
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "bne") {
+        type = 0b11;
+        opcode = 0b11000;
+        int c24_20 = getRegNum(ins.getOp2());
+        int c19_15 = getRegNum(ins.getOp1());
+        int c14_12 = 0b001;
+        int offset;
+        if (!labels[ins.getOp3()]) {
+            offset = convert(ins.getOp3()); //offset
+        } else {
+            offset =   4 * (labels[ins.getOp3()] - pc + 1);
+        }
+        
+        res = (opcode << 2) | (type) | (c24_20 << 20) | (c19_15 << 15) | (((offset >> 1) & 0xf) << 8) | (c14_12 << 12) |
+            (((offset >> 11) & 1) << 7) | (((offset >> 5) & 0x3f) << 25) | (((offset >> 12) & 1) << 31);
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "bge") {
+        type = 0b11;
+        opcode = 0b11000;
+        int c24_20 = getRegNum(ins.getOp2());
+        int c19_15 = getRegNum(ins.getOp1());
+        int c14_12 = 0b101;
+        int offset;
+        if (!labels[ins.getOp3()]) {
+            offset = convert(ins.getOp3()); //offset
+        } else {
+            offset =   4 * (labels[ins.getOp3()] - pc + 1);
+        }
+        
+        res = (opcode << 2) | (type) | (c24_20 << 20) | (c19_15 << 15) | (((offset >> 1) & 0xf) << 8) | (c14_12 << 12) |
+            (((offset >> 11) & 1) << 7) | (((offset >> 5) & 0x3f) << 25) | (((offset >> 12) & 1) << 31);
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "bltu") {
+        type = 0b11;
+        opcode = 0b11000;
+        int c24_20 = getRegNum(ins.getOp2());
+        int c19_15 = getRegNum(ins.getOp1());
+        int c14_12 = 0b110;
+        int offset;
+        if (!labels[ins.getOp3()]) {
+            offset = convert(ins.getOp3()); //offset
+        } else {
+            offset =   4 * (labels[ins.getOp3()] - pc + 1);
+        }
+        
+        res = (opcode << 2) | (type) | (c24_20 << 20) | (c19_15 << 15) | (((offset >> 1) & 0xf) << 8) | (c14_12 << 12) |
+            (((offset >> 11) & 1) << 7) | (((offset >> 5) & 0x3f) << 25) | (((offset >> 12) & 1) << 31);
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "bgeu") {
+        type = 0b11;
+        opcode = 0b11000;
+        int c24_20 = getRegNum(ins.getOp2());
+        int c19_15 = getRegNum(ins.getOp1());
+        int c14_12 = 0b111;
+        int offset;
+        if (!labels[ins.getOp3()]) {
+            offset = convert(ins.getOp3()); //offset
+        } else {
+            offset =   4 * (labels[ins.getOp3()] - pc + 1);
+        }
+        
+        res = (opcode << 2) | (type) | (c24_20 << 20) | (c19_15 << 15) | (((offset >> 1) & 0xf) << 8) | (c14_12 << 12) |
+            (((offset >> 11) & 1) << 7) | (((offset >> 5) & 0x3f) << 25) | (((offset >> 12) & 1) << 31);
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "mulh") {
+        type = 0b11;
+        opcode = 0b01100;
+        int c11_7 =  getRegNum(ins.getOp1());
+        int c14_12 = 0b001;
+        int c19_15 = getRegNum(ins.getOp2());
+        int c24_20 = getRegNum(ins.getOp3());
+        int c26_25 = 0b01;
+        
+        res = (opcode << 2) | (type) | (c11_7 << 7) | (c14_12 << 12) | (c19_15 << 15) | (c24_20 << 20) | (c26_25 << 25);
+
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "mulhsu") {
+        type = 0b11;
+        opcode = 0b01100;
+        int c11_7 =  getRegNum(ins.getOp1());
+        int c14_12 = 0b010;
+        int c19_15 = getRegNum(ins.getOp2());
+        int c24_20 = getRegNum(ins.getOp3());
+        int c26_25 = 0b01;
+        
+        res = (opcode << 2) | (type) | (c11_7 << 7) | (c14_12 << 12) | (c19_15 << 15) | (c24_20 << 20) | (c26_25 << 25);
+
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "mulhu") {
+        type = 0b11;
+        opcode = 0b01100;
+        int c11_7 =  getRegNum(ins.getOp1());
+        int c14_12 = 0b011;
+        int c19_15 = getRegNum(ins.getOp2());
+        int c24_20 = getRegNum(ins.getOp3());
+        int c26_25 = 0b01;
+        
+        res = (opcode << 2) | (type) | (c11_7 << 7) | (c14_12 << 12) | (c19_15 << 15) | (c24_20 << 20) | (c26_25 << 25);
+
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "div") {
+        type = 0b11;
+        opcode = 0b01100;
+        int c11_7 =  getRegNum(ins.getOp1());
+        int c14_12 = 0b100;
+        int c19_15 = getRegNum(ins.getOp2());
+        int c24_20 = getRegNum(ins.getOp3());
+        int c26_25 = 0b01;
+        
+        res = (opcode << 2) | (type) | (c11_7 << 7) | (c14_12 << 12) | (c19_15 << 15) | (c24_20 << 20) | (c26_25 << 25);
+
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "divu") {
+        type = 0b11;
+        opcode = 0b01100;
+        int c11_7 =  getRegNum(ins.getOp1());
+        int c14_12 = 0b101;
+        int c19_15 = getRegNum(ins.getOp2());
+        int c24_20 = getRegNum(ins.getOp3());
+        int c26_25 = 0b01;
+        
+        res = (opcode << 2) | (type) | (c11_7 << 7) | (c14_12 << 12) | (c19_15 << 15) | (c24_20 << 20) | (c26_25 << 25);
+
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "rem") {
+        type = 0b11;
+        opcode = 0b01100;
+        int c11_7 =  getRegNum(ins.getOp1());
+        int c14_12 = 0b110;
+        int c19_15 = getRegNum(ins.getOp2());
+        int c24_20 = getRegNum(ins.getOp3());
+        int c26_25 = 0b01;
+        
+        res = (opcode << 2) | (type) | (c11_7 << 7) | (c14_12 << 12) | (c19_15 << 15) | (c24_20 << 20) | (c26_25 << 25);
+
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
+        order(res, bin_file_);
+    } else if (ins.getCommand() == "remu") {
+        type = 0b11;
+        opcode = 0b01100;
+        int c11_7 =  getRegNum(ins.getOp1());
+        int c14_12 = 0b111;
+        int c19_15 = getRegNum(ins.getOp2());
+        int c24_20 = getRegNum(ins.getOp3());
+        int c26_25 = 0b01;
+        
+        res = (opcode << 2) | (type) | (c11_7 << 7) | (c14_12 << 12) | (c19_15 << 15) | (c24_20 << 20) | (c26_25 << 25);
+
+#ifdef BIN_DEBUG
+        bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
+#endif
         order(res, bin_file_);
     } else {
         if (!ins.isMarked())

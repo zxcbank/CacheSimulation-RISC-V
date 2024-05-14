@@ -7,16 +7,16 @@
 #pragma once
 #include <iostream>
 #include <vector>
-
+#include <cstdint>
 
 class RAM {
     public:
         std::string name;
-        std::vector<int> addr = std::vector<int>(MEM_SIZE, 0);
+        std::vector<int8_t> addr = std::vector<int8_t>(MEM_SIZE, 0);
         
         [[nodiscard]] RAM(std::string name) : name(std::move(name)) {}
         
-        int& operator [](int i) {
+        int8_t& operator [](int i) {
             
             return addr.at(i);
         }

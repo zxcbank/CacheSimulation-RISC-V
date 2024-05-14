@@ -34,7 +34,6 @@ void LRU::checkLRU(int index, int tag, int time_) {
     int minWay = findLeastRecentlyUsed(index);
     cache[index][minWay].setTag(tag);
     cache[index][minWay].setTime(time_);
-    cache[index][minWay].setData(0); //забыл
 }
 
 float LRU::hitRate() const {

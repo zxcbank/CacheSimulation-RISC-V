@@ -13,28 +13,20 @@ class CacheLine {
     private:
         int tag;
         int time;
-        int data;
         
     public:
-        explicit CacheLine(int tag, int data, int time_) : tag(tag), data(data), time(time_) {}
-        CacheLine() : tag(-1), data(0), time(0) {}
-        ~CacheLine() = default;
+        explicit CacheLine(int tag, int data, int time_) : tag(tag), time(time_) {}
+        CacheLine() : tag(-1), time(-1) {}
         
+        ~CacheLine() = default;
         [[nodiscard]] int getTag() const {
             return tag;
-        }
-        [[nodiscard]] int getData() const {
-            return data;
         }
         [[nodiscard]] int getTime() const {
             return time;
         }
          void setTime(int time_) {
             this->time = time_;
-        }
-        
-         void setData(int data_) {
-            this->data = data_;
         }
         
          void setTag(int tag_) {

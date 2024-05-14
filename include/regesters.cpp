@@ -40,6 +40,6 @@ int getRegNum(const std::string& reg) {
     if (reg == "t5") return t5;
     if (reg == "t6") return t6;
     
-    std::cerr << "Invalid register: " << reg << std::endl;
+//    std::cerr << "Invalid register: " << reg << std::endl;
     return -1;
 }
