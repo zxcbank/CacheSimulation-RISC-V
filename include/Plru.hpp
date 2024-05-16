@@ -15,7 +15,7 @@ class bitCacheLine {
         uint64_t data;
     public:
         explicit bitCacheLine(uint64_t tag, uint64_t data, bool act_) : tag(tag), data(data), active(act_) {}
-        bitCacheLine() : tag(0), data(0), active(false) {}
+        bitCacheLine() : tag(-1), data(0), active(false) {}
         ~bitCacheLine() = default;
         
         [[nodiscard]] uint64_t getTag() const {

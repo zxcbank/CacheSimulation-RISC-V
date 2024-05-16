@@ -203,7 +203,7 @@ void lh(std::vector<int>& reg, int r1, int offset, int r2, RAM& memory) {
 void lbu(std::vector<int>& reg, int r1, int offset, int r2, RAM& memory) {
     if (r1 == 0)
         return;
-    reg[r1] = memory[reg[r2] + sext(offset, 7)] & 0xFF;
+    reg[r1] = memory[reg[r2] + sext(offset, 7) ] & 0xFF;
 }
 
 void lhu(std::vector<int>& reg, int r1, int offset, int r2, RAM& memory) {

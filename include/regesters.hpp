@@ -39,4 +39,4 @@ enum Regesters {
     t6
 };
 
-int getRegNum(const std::string& reg);
+int getRegNum(std::string reg);

@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-int getRegNum(const std::string& reg) {
+int getRegNum(std::string reg) {
     if (reg == "zero") return zero;
     if (reg == "ra") return ra;
     if (reg == "sp") return sp;

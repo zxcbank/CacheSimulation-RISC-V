@@ -3,7 +3,8 @@
 //
 #include <iomanip>
 #include "processor.hpp"
-//#define ITER_DEBUG
+#define ITER_DEBUG
+#define ADDR_DEBUG
 //#define BIN_DEBUG
 //#define STAT_DEBUG
 
@@ -23,7 +24,7 @@ bool is_emply(const std::string& reg) {
 }
 
 void Processor::execute(const std::string& filename) {
-    
+    int addr_access = 0;
     int pc = 0; // Program Counter
     int global_time_utc0 = 0;
     bool asm_file_open = false;
@@ -53,16 +54,48 @@ void Processor::execute(const std::string& filename) {
         pc = 0;
         while (pc < instructions.size()) {
             auto ins = instructions[pc];
+            
             global_time_utc0++;
             
             if (ins.isRamUsing()) {
-                int index = (registers[getRegNum(ins.getOp3())] >> 5) & 31;
-                int tag = (registers[getRegNum(ins.getOp3())] >> 10) & 255;
+                addr_access++;
+                int addr = registers[getRegNum(ins.getOp3())];
+                int index = (addr >> 5) & 31;
+                int tag = (addr >> 10) & 255;
                 
                 lru_cache.checkLRU(index, tag, global_time_utc0);
                 plru_cache.checkPLRU(index, tag, global_time_utc0);
+                
+//                if ("lh" == ins.getCommand() || "sh" == ins.getCommand()) {
+//                    addr = registers[getRegNum(ins.getOp3())] + 1;
+//                    index = (addr >> 5) & 31;
+//                    tag = (addr >> 10) & 255;
+//
+//                    lru_cache.checkLRU(index, tag, global_time_utc0);
+//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
+//                } else if ("lw" == ins.getCommand() || "sw" == ins.getCommand()) {
+//                    addr = registers[getRegNum(ins.getOp3())] + 1;
+//                    index = (addr >> 5) & 31;
+//                    tag = (addr >> 10) & 255;
+//
+//                    lru_cache.checkLRU(index, tag, global_time_utc0);
+//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
+//
+//                    addr = registers[getRegNum(ins.getOp3())] + 2;
+//                    index = (addr >> 5) & 31;
+//                    tag = (addr >> 10) & 255;
+//                    lru_cache.checkLRU(index, tag, global_time_utc0);
+//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
+//
+//                    addr = registers[getRegNum(ins.getOp3())] + 3;
+//                    index = (addr >> 5) & 31;
+//                    tag = (addr >> 10) & 255;
+//                    lru_cache.checkLRU(index, tag, global_time_utc0);
+//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
+//                }
             }
             try {
+//                std::cout << pc << "\n";
                 ins.invoke(pc, labels, memory, registers, instructions);
                 pc++;
             } catch(...) {
@@ -89,7 +122,9 @@ void Processor::execute(const std::string& filename) {
     #ifdef ITER_DEBUG
             std::cout << "Iterations: " << global_time_utc0 << std::endl;
     #endif
-    
+    #ifdef ADDR_DEBUG
+        std::cout << "Accesses: " << addr_access << std::endl;
+    #endif
 }
 
 void Processor::getStats() const {
@@ -212,7 +247,7 @@ void Processor::writeBinForm(int pc, const AssmblerInstruction& ins, std::vector
         int c14_12 = 0b010;
         int c19_15 = getRegNum(ins.getOp3());
         int c31_25 = convert(ins.getOp2());
-        int c11_7 =  getRegNum(ins.getOp2()) & 0xF;
+        int c11_7 =  convert(ins.getOp2()) & 0xF;
         res = (opcode << 2) | (type) | (c14_12 << 12) | (c19_15 << 15) | ((c31_25 >> 6) << 25);
         
         #ifdef BIN_DEBUG

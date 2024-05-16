@@ -10,7 +10,7 @@
 #include "RISK32I.hpp"
 #include "RISK32M.hpp"
 
-static const std::vector<std::string> ramCommands{"ls", "lw", "sw"};
+static const std::vector<std::string> ramCommands{"lb", "lh", "lw", "sb", "sh", "sw"};
 
 class AssmblerInstruction {
     private:
