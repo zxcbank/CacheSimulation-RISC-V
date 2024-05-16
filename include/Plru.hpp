@@ -12,27 +12,19 @@ class bitCacheLine {
     private:
         int tag;
         bool active = false;
-        int data;
     public:
-        explicit bitCacheLine(uint64_t tag, uint64_t data, bool act_) : tag(tag), data(data), active(act_) {}
-        bitCacheLine() : tag(-1), data(0), active(false) {}
+        explicit bitCacheLine(uint64_t tag, uint64_t data, bool act_) : tag(tag), active(act_) {}
+        bitCacheLine() : tag(-1), active(false) {}
         ~bitCacheLine() = default;
         
         [[nodiscard]] uint64_t getTag() const {
             return tag;
-        }
-        [[nodiscard]] uint64_t getData() const {
-            return data;
         }
         [[nodiscard]] bool getAct() const {
             return active;
         }
         void setAct(bool act_) {
             this->active = act_;
-        }
-        
-        void setData(uint64_t data_) {
-            this->data = data_;
         }
         
         void setTag(uint64_t tag_) {

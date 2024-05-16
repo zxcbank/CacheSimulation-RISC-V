@@ -34,7 +34,6 @@ bool PLRU::checkPLRU(int addr, int time_) {
     
     cache[index][minWay].setTag(tag);
     cache[index][minWay].setAct(true);
-    cache[index][minWay].setData(0); //забыл
     bool flag = false;
     for (int j = 0; j < CACHE_WAY; j++) {
         if (!cache[index][j].getAct()) {

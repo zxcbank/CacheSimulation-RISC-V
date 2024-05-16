@@ -1,0 +1,17 @@
+# ninja log v5
+6	993	7375759501265588	CMakeFiles/ARCH3.dir/include/processor.cpp.obj	162b204ef4903773
+4	791	7375759499259236	CMakeFiles/ARCH3.dir/main.cpp.obj	ae413c138aff1e
+6	923	7370779507298243	CMakeFiles/ARCH3.dir/include/ArgParser.cpp.obj	d8ad5f42ef1a1143
+8	524	7375645367879039	CMakeFiles/ARCH3.dir/include/RISK32M.cpp.obj	265aacb0958c31b7
+821	969	7375757210895792	ARCH3.exe	3d6cd9674ec9bf7
+6	807	7375684231548201	CMakeFiles/ARCH3.dir/include/RiskVcommand.cpp.obj	8878c6178e107a51
+3	586	7375685979836618	CMakeFiles/ARCH3.dir/include/RISK32I.cpp.obj	620770eecf0ba8f2
+6	472	7375684228215227	CMakeFiles/ARCH3.dir/include/regesters.cpp.obj	d738a2ffe89eea1d
+4	250	7375674282575250	CMakeFiles/ARCH3.dir/include/Lru.cpp.obj	21b93ebc27a52add
+7	304	7375693953454105	CMakeFiles/ARCH3.dir/include/Plru.cpp.obj	3770aa37665d0db5
+3	197	7375759867802457	CMakeFiles/ARCH3.dir/include/Plru.cpp.obj	3770aa37665d0db5
+197	344	7375759869235762	ARCH3.exe	3d6cd9674ec9bf7
+5	250	7375760288922960	CMakeFiles/ARCH3.dir/include/Lru.cpp.obj	21b93ebc27a52add
+3	663	7375760293045483	CMakeFiles/ARCH3.dir/main.cpp.obj	ae413c138aff1e
+5	787	7375760294275069	CMakeFiles/ARCH3.dir/include/processor.cpp.obj	162b204ef4903773
+787	924	7375760295630423	ARCH3.exe	3d6cd9674ec9bf7

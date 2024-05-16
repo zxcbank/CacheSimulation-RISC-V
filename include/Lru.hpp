@@ -13,7 +13,6 @@ class CacheLine {
     private:
         int tag;
         int time;
-        
     public:
         explicit CacheLine(int tag, int data, int time_) : tag(tag), time(time_) {}
         CacheLine() : tag(-1), time(-1) {}

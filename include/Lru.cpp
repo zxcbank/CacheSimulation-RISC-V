@@ -25,8 +25,6 @@ LRU::LRU() {
 bool LRU::checkLRU(int addr, int time_) {
     int index = (addr >> 5) & 31;
     int tag = (addr >> 10) & 255;
-//    int32_t index = addr / CACHE_LINE_SIZE % CACHE_SETS;
-//    int32_t tag = addr / CACHE_LINE_SIZE / CACHE_SETS;
     
     for (int i = 0; i < CACHE_WAY; i++) {
         if (cache[index][i].getTag() == tag) {
