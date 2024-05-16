@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-#define CACHE_SIZE 4096 // byte
+#define CACHE_SIZE 4096
 #define CACHE_SETS 32
 #define CACHE_WAY 4
 
