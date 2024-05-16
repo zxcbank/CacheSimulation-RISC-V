@@ -3,10 +3,10 @@
 //
 #include <iomanip>
 #include "processor.hpp"
-#define ITER_DEBUG
+//#define ITER_DEBUG
 //#define ADDR_DEBUG
 //#define BIN_DEBUG
-#define STAT_DEBUG
+//#define STAT_DEBUG
 
 #define mask32 0xffffffff
 #define mask2byte_1 0xff000000
@@ -231,14 +231,15 @@ void Processor::writeBinForm(int pc, const AssmblerInstruction& ins, std::vector
         #endif
         order(res, bin_file_);
     } else if (ins.getCommand() == "sw") {
-        type = 0b11;
-        opcode = 0b01000;
-        int c14_12 = 0b010;
-        int c19_15 = getRegNum(ins.getOp3());
-        int c31_25 = convert(ins.getOp2());
-        int c11_7 =  convert(ins.getOp2()) & 0xF;
-        res = (opcode << 2) | (type) | (c14_12 << 12) | (c19_15 << 15) | ((c31_25 >> 6) << 25);
-        
+//        type = 0b11;
+//        opcode = 0b01000;
+//        int c14_12 = 0b010;
+//        int c19_15 = getRegNum(ins.getOp3());
+//        int c31_25 = convert(ins.getOp2());
+//        int c11_7 =  convert(ins.getOp2()) & 0xF;
+//        res = (opcode << 2) | (type) | (c14_12 << 12) | (c19_15 << 15) | ((c31_25 >> 6) << 25);
+        res = (0b11) | (0b01000 << 2) | (0b010 << 12) | (getRegNum(ins.getOp3()) << 15) | (getRegNum(ins.getOp1()) << 20) | ((convert(ins.getOp2())&0x1f)<<7) |
+        ((convert(ins.getOp2())>>5)&0x7f) << 25;
         #ifdef BIN_DEBUG
                 bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
         #endif
@@ -410,14 +411,14 @@ void Processor::writeBinForm(int pc, const AssmblerInstruction& ins, std::vector
         #endif
         order(res, bin_file_);
     } else if (ins.getCommand() == "lb") {
-        res = (0b11) | (0b00000 << 2) | (0b000 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        res = (0b11) | (0b00000 << 2) | (0b000 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 20) | (getRegNum(ins.getOp3()) << 15);
         #ifdef BIN_DEBUG
                 bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
         #endif
         order(res, bin_file_);
     } else if (ins.getCommand() == "lh") {
         
-        res = (0b11) | (0b00000 << 2) | (0b001 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 15) | (getRegNum(ins.getOp3()) << 20);
+        res = (0b11) | (0b00000 << 2) | (0b001 << 12) | (getRegNum(ins.getOp1()) << 7) | (convert(ins.getOp2()) << 20) | (getRegNum(ins.getOp3()) << 15);
         #ifdef BIN_DEBUG
                 bin_file_ << ins.getCommand() << " " << ins.getOp1() << " " << ins.getOp2() << " " << ins.getOp3() << " ";
         #endif
