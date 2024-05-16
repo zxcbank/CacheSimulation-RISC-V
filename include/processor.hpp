@@ -8,8 +8,8 @@
 #include "regesters.hpp"
 #include "fstream"
 #include "RiskVcommand.hpp"
-#include "LRU.hpp"
-#include "PLRU.hpp"
+#include "Lru.hpp"
+#include "Plru.hpp"
 
 class Processor {
         std::ifstream asm_file;
