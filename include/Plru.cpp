@@ -4,24 +4,52 @@
 
 #include "Plru.hpp"
 
-void PLRU::checkPLRU(int index, int tag, int time_) {
-    cacheAccess++;
+bool PLRU::checkPLRU(int addr, int time_) {
+    int index = (addr >> 5) & 31;
+    int tag = (addr >> 10) & 255;
+    
     for (int i = 0; i < CACHE_WAY; i++) {
         if (cache[index][i].getTag() == tag) {
-            cacheHit++;
+            
             cache[index][i].setAct(true);
-            return;
+            bool flag = false;
+            for (int j = 0; j < CACHE_WAY; j++) {
+                if (!cache[index][j].getAct()) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag) {
+                for (int j = 0; j < CACHE_WAY; j++) {
+                    if (i != j) {
+                        cache[index][j].setAct(false);
+                    }
+                }
+            }
+            return true;
         }
     }
+    
     int minWay = findLeastRecentlyUsed(index);
     
-    cache[index].filled++;
-    if (cache[index].filled == CACHE_WAY) {
-        cache[index].reset();
-    }
     cache[index][minWay].setTag(tag);
     cache[index][minWay].setAct(true);
     cache[index][minWay].setData(0); //забыл
+    bool flag = false;
+    for (int j = 0; j < CACHE_WAY; j++) {
+        if (!cache[index][j].getAct()) {
+            flag = true;
+            break;
+        }
+    }
+    if (!flag) {
+        for (int j = 0; j < CACHE_WAY; j++) {
+            if (minWay != j) {
+                cache[index][j].setAct(false);
+            }
+        }
+    }
+    return false;
 }
 
 int PLRU::findLeastRecentlyUsed(int index) {

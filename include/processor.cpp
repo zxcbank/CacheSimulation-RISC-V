@@ -4,9 +4,9 @@
 #include <iomanip>
 #include "processor.hpp"
 #define ITER_DEBUG
-#define ADDR_DEBUG
+//#define ADDR_DEBUG
 //#define BIN_DEBUG
-//#define STAT_DEBUG
+#define STAT_DEBUG
 
 #define mask32 0xffffffff
 #define mask2byte_1 0xff000000
@@ -24,7 +24,6 @@ bool is_emply(const std::string& reg) {
 }
 
 void Processor::execute(const std::string& filename) {
-    int addr_access = 0;
     int pc = 0; // Program Counter
     int global_time_utc0 = 0;
     bool asm_file_open = false;
@@ -58,41 +57,35 @@ void Processor::execute(const std::string& filename) {
             global_time_utc0++;
             
             if (ins.isRamUsing()) {
-                addr_access++;
-                int addr = registers[getRegNum(ins.getOp3())];
-                int index = (addr >> 5) & 31;
-                int tag = (addr >> 10) & 255;
+                lru_cache.cacheAccess++;
+                plru_cache.cacheAccess++;
                 
-                lru_cache.checkLRU(index, tag, global_time_utc0);
-                plru_cache.checkPLRU(index, tag, global_time_utc0);
+                if (ins.getCommand() == "lb" || ins.getCommand() == "sb") {
+                    int addr = registers[getRegNum(ins.getOp3())];
+                    if (lru_cache.checkLRU(addr, global_time_utc0))
+                        lru_cache.cacheHit++;
+                    if (plru_cache.checkPLRU(addr, global_time_utc0))
+                        plru_cache.cacheHit++;
+                } else if (ins.getCommand() == "lh" || ins.getCommand() == "sh") {
+                    int addr = registers[getRegNum(ins.getOp3())];
+                    if (lru_cache.checkLRU(addr, global_time_utc0) && lru_cache.checkLRU(addr + 1, global_time_utc0))
+                        lru_cache.cacheHit++;
+                    if (plru_cache.checkPLRU(addr, global_time_utc0) && plru_cache.checkPLRU(addr + 1, global_time_utc0))
+                        plru_cache.cacheHit++;
+                } else if (ins.getCommand() == "lw" || ins.getCommand() == "sw") {
+                    int addr = registers[getRegNum(ins.getOp3())];
+                    if (lru_cache.checkLRU(addr, global_time_utc0) &&
+                    lru_cache.checkLRU(addr + 1, global_time_utc0) &&
+                    lru_cache.checkLRU(addr + 2, global_time_utc0) &&
+                    lru_cache.checkLRU(addr + 3, global_time_utc0))
+                        lru_cache.cacheHit++;
+                    if (plru_cache.checkPLRU(addr, global_time_utc0) &&
+                        plru_cache.checkPLRU(addr + 1, global_time_utc0) &&
+                        plru_cache.checkPLRU(addr + 2, global_time_utc0) &&
+                        plru_cache.checkPLRU(addr + 3, global_time_utc0))
+                        plru_cache.cacheHit++;
+                }
                 
-//                if ("lh" == ins.getCommand() || "sh" == ins.getCommand()) {
-//                    addr = registers[getRegNum(ins.getOp3())] + 1;
-//                    index = (addr >> 5) & 31;
-//                    tag = (addr >> 10) & 255;
-//
-//                    lru_cache.checkLRU(index, tag, global_time_utc0);
-//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
-//                } else if ("lw" == ins.getCommand() || "sw" == ins.getCommand()) {
-//                    addr = registers[getRegNum(ins.getOp3())] + 1;
-//                    index = (addr >> 5) & 31;
-//                    tag = (addr >> 10) & 255;
-//
-//                    lru_cache.checkLRU(index, tag, global_time_utc0);
-//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
-//
-//                    addr = registers[getRegNum(ins.getOp3())] + 2;
-//                    index = (addr >> 5) & 31;
-//                    tag = (addr >> 10) & 255;
-//                    lru_cache.checkLRU(index, tag, global_time_utc0);
-//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
-//
-//                    addr = registers[getRegNum(ins.getOp3())] + 3;
-//                    index = (addr >> 5) & 31;
-//                    tag = (addr >> 10) & 255;
-//                    lru_cache.checkLRU(index, tag, global_time_utc0);
-//                    plru_cache.checkPLRU(index, tag, global_time_utc0);
-//                }
             }
             try {
 //                std::cout << pc << "\n";
@@ -102,7 +95,6 @@ void Processor::execute(const std::string& filename) {
                 std::cout << "Error in line: " << pc << std::endl;
                 exit(1);
             }
-            
         }
         
         asm_file.close();
@@ -121,9 +113,6 @@ void Processor::execute(const std::string& filename) {
     
     #ifdef ITER_DEBUG
             std::cout << "Iterations: " << global_time_utc0 << std::endl;
-    #endif
-    #ifdef ADDR_DEBUG
-        std::cout << "Accesses: " << addr_access << std::endl;
     #endif
 }
 

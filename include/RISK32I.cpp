@@ -34,7 +34,8 @@ void srli (std::vector<int>& reg, int r1, int r2, int imm) {
 void lui(std::vector<int>& reg, int r1, int imm) {
     if (r1 == 0)
         return;
-    reg[r1] = sext(imm << 12, 20); // мб не 12 на самом деле потом проверю
+    reg[r1] = imm << 12; // мб не 12 на самом деле потом проверю
+    
 }
 
 void blt(std::vector<int>& reg, int r1, int r2, std::string& r3, int& pc, std::map<std::string, int>& labels) { // для меток

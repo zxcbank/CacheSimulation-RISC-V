@@ -3,7 +3,7 @@
 //
 
 #include "Lru.hpp"
-
+#define CACHE_LINE_SIZE 32
 int LRU::findLeastRecentlyUsed(int index) {
     int minIndex = 0;
     
@@ -22,18 +22,23 @@ LRU::LRU() {
     }
 }
 
-void LRU::checkLRU(int index, int tag, int time_) {
-    cacheAccess++;
+bool LRU::checkLRU(int addr, int time_) {
+    int index = (addr >> 5) & 31;
+    int tag = (addr >> 10) & 255;
+//    int32_t index = addr / CACHE_LINE_SIZE % CACHE_SETS;
+//    int32_t tag = addr / CACHE_LINE_SIZE / CACHE_SETS;
+    
     for (int i = 0; i < CACHE_WAY; i++) {
         if (cache[index][i].getTag() == tag) {
-            cacheHit++;
             cache[index][i].setTime(time_);
-            return;
+            return true;
         }
     }
+    
     int minWay = findLeastRecentlyUsed(index);
     cache[index][minWay].setTag(tag);
     cache[index][minWay].setTime(time_);
+    return false;
 }
 
 float LRU::hitRate() const {

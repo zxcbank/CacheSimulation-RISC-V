@@ -41,7 +41,7 @@ class LRU {
         int cacheHit = 0;
         int cacheAccess = 0;
         LRU();
-        void checkLRU(int index, int tag, int time_);
+        bool checkLRU(int addr, int time_);
         int findLeastRecentlyUsed(int index);
         ~LRU() = default;
         

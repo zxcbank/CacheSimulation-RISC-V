@@ -10,9 +10,9 @@
 
 class bitCacheLine {
     private:
-        uint64_t tag;
+        int tag;
         bool active = false;
-        uint64_t data;
+        int data;
     public:
         explicit bitCacheLine(uint64_t tag, uint64_t data, bool act_) : tag(tag), data(data), active(act_) {}
         bitCacheLine() : tag(-1), data(0), active(false) {}
@@ -44,20 +44,11 @@ class cashset {
     private:
         std::vector<bitCacheLine> cache = std::vector<bitCacheLine>(CACHE_WAY);
     public:
-        int filled = 0;
         cashset() = default;
         ~cashset() = default;
         
         [[nodiscard]] bitCacheLine& operator[](int index) {
             return cache[index];
-        }
-        void reset () {
-            filled = 1;
-            for (int i = 0; i < CACHE_WAY; i++) {
-                cache[i].setTag(0);
-                cache[i].setData(0);
-                cache[i].setAct(false);
-            }
         }
 };
 
@@ -69,7 +60,7 @@ class PLRU {
         int cacheAccess = 0;
         
         PLRU() = default;
-        void checkPLRU(int index, int tag, int time_);
+        bool checkPLRU(int addr, int time_);
         int findLeastRecentlyUsed(int index);
         ~PLRU() = default;
         
