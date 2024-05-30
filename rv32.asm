@@ -1,6 +1,6 @@
 addi t0, zero, 0x100  # pa
 lui t1, 0x1800 # pc
-srli t1, t1, 12 #сдвиг тк луи фигней занимается
+srli t1, t1, 12
 addi t3, zero, 0 #y  cycle
 addi s2, zero, 64 #M
 addi s3, zero, 60 #N
@@ -8,7 +8,7 @@ addi s4, zero,  32 #K
 
 addi t2, zero,  0 #x cycle
 lui t4, 0x900 #pb
-srli t4, t4, 12 #сдвиг тк луи фигней занимается
+srli t4, t4, 12
 addi t5, zero,  0 #s
 addi t6, zero,  0 #k cycle
 
